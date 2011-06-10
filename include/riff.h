@@ -21,13 +21,13 @@ typedef uint32_t fourcc_t;
 #define MAX_CHUNK_LENGTH UINT32_MAX
 
 typedef union {
-	struct {
-		fourcc_t format; /* Chunk format. E.g. 'WAVE' */
-	} riff;
-	struct {
-		fourcc_t type;   /* List type. E.g. 'INFO' */
-	} list;
-	/* TODO: other chunk types */
+    struct {
+        fourcc_t format; /* Chunk format. E.g. 'WAVE' */
+    } riff;
+    struct {
+        fourcc_t type;   /* List type. E.g. 'INFO' */
+    } list;
+    /* TODO: other chunk types */
 } riff_chunkdata_t;
 
 typedef struct {
@@ -40,13 +40,13 @@ typedef struct {
     riff_chunkdata_t data; /* Data for particular chunk type */
 } riff_chunk_t;
 
-typedef	enum {
-	RIFF_SUCCESS         = 0,    /* chunk was read successfully */
+typedef    enum {
+    RIFF_SUCCESS         = 0,    /* chunk was read successfully */
     RIFF_STOPPED         = 1,    /* riff parsing was stopped by callback */
-	RIFF_READFAILED      = -100, /* fread() error */
-	RIFF_CHUNKINCOMPLETE = -101, /* EOF before the end of chunk */
-	RIFF_SUBCHUNKTOOLONG = -102, /* subchunk ends after the end of chunk */
-	RIFF_WRONGFCC        = -103  /* unexpected FourCC */
+    RIFF_READFAILED      = -100, /* fread() error */
+    RIFF_CHUNKINCOMPLETE = -101, /* EOF before the end of chunk */
+    RIFF_SUBCHUNKTOOLONG = -102, /* subchunk ends after the end of chunk */
+    RIFF_WRONGFCC        = -103  /* unexpected FourCC */
 } riff_result_t;
 
 /* Chunk callback should return one of the following: */

@@ -44,9 +44,9 @@
 
 #define VEC_COMPACT(VAR)                                                       \
     if((VAR)._cap > (VEC_MIN_CAPACITY * 2) && (VAR)._cap > ((VAR).size * 2)) { \
-		(VAR)._cap /= 2;                                                       \
-		(VAR).data = realloc((VAR).data, sizeof(*(VAR).data) * (VAR)._cap);    \
-	}
+        (VAR)._cap /= 2;                                                       \
+        (VAR).data = realloc((VAR).data, sizeof(*(VAR).data) * (VAR)._cap);    \
+    }
 
 #define VEC_GET(VAR, IDX)      ((VAR).data[IDX])
 #define VEC_INDEXOF(VAR, VAL)  (&(VAL) - (VAR).data)

@@ -10,26 +10,26 @@ void fourcc_to_string(fourcc_t fourcc, char * buf) {
 }
 
 int fourcc_is_group(fourcc_t fourcc) {
-	return fourcc == FCC_RIFF || fourcc == FCC_LIST 
-	    || fourcc == FCC_FORM || fourcc == FCC_CAT;
+    return fourcc == FCC_RIFF || fourcc == FCC_LIST 
+        || fourcc == FCC_FORM || fourcc == FCC_CAT;
 }
 
 /* ensure file offset is even 
    because chunks can start from even byte only */
 #define ALIGN_EVEN(f, offset)         \
-	if ((offset) % 2) {               \
-		(offset)++;                   \
-		(void)getc(f);                \
-	}
+    if ((offset) % 2) {               \
+        (offset)++;                   \
+        (void)getc(f);                \
+    }
 
 #define CLEAR_CHUNK(c)                \
-	(c).pos_head = (c).pos_end =      \
-	(c).pos_content      = 0;         \
-	(c).fourcc           = FCC_NULL;  \
-	(c).data.riff.format = FCC_NULL;  \
-	(c).data.list.type   = FCC_NULL;
+    (c).pos_head = (c).pos_end =      \
+    (c).pos_content      = 0;         \
+    (c).fourcc           = FCC_NULL;  \
+    (c).data.riff.format = FCC_NULL;  \
+    (c).data.list.type   = FCC_NULL;
 
-int _riff_fskip(FILE * f, uint64_t skip) {
+static int _riff_fskip(FILE * f, uint64_t skip) {
     int res = 0;
     fpos_t cur_pos;
     int step_skip;
@@ -45,23 +45,23 @@ int _riff_fskip(FILE * f, uint64_t skip) {
     return res;
 }
 
-riff_result_t _riff_read_chunk_content (FILE * f,
-								        riff_chunkv_t * path_ptr,
-								        uint64_t * foffset_ptr,
-								        riff_chunkcb chunk_cb,
+static riff_result_t _riff_read_chunk_content (FILE * f,
+                                        riff_chunkv_t * path_ptr,
+                                        uint64_t * foffset_ptr,
+                                        riff_chunkcb chunk_cb,
                                         void * cookie) {
-	uint32_t skip_bytes_left = VEC_TOP(*path_ptr).pos_end - *foffset_ptr;
-	riff_chunk_t next_subchunk, cur_chunk;
-	fourcc_t fourcc;
+    uint32_t skip_bytes_left = VEC_TOP(*path_ptr).pos_end - *foffset_ptr;
+    riff_chunk_t next_subchunk, cur_chunk;
+    fourcc_t fourcc;
     uint32_t size;
-	riff_result_t subchunk_res;
+    riff_result_t subchunk_res;
     enum {
         A_READ_SUBCHUNKS, /* when chunk is a group AND callback returned R_CONTINUE */
         A_SKIP_CHUNK,     /* when chunk is NOT a group OR callback returned R_SKIP */
         A_UPDATE_OFFSET,  /* when callback returned R_CHUNK_IS_READ */
     } next_action;
 
-	if(VEC_TOP(*path_ptr).fourcc == FCC_RIFF) {
+    if(VEC_TOP(*path_ptr).fourcc == FCC_RIFF) {
         *foffset_ptr += sizeof(fourcc_t);
         skip_bytes_left -= sizeof(fourcc_t);
         /* advance pos_content after RIFF format fourcc code */
@@ -77,14 +77,14 @@ riff_result_t _riff_read_chunk_content (FILE * f,
         if(1 != fread(&VEC_TOP(*path_ptr).data.list.type, sizeof(fourcc_t), 1, f)) {
             return ferror(f) ? RIFF_READFAILED : RIFF_CHUNKINCOMPLETE;
         }
-	}
-	
-	cur_chunk = VEC_TOP(*path_ptr);
+    }
+    
+    cur_chunk = VEC_TOP(*path_ptr);
 
-	/* all chunk data is read
-	   subchunks left */
+    /* all chunk data is read
+       subchunks left */
     next_action = fourcc_is_group(cur_chunk.fourcc) ? A_READ_SUBCHUNKS : A_SKIP_CHUNK;
-	if(chunk_cb != NULL) {
+    if(chunk_cb != NULL) {
         /* call callback function */
         switch(chunk_cb(path_ptr, f, *foffset_ptr, cookie)) {
             case RIFF_CONTINUE:
@@ -103,7 +103,7 @@ riff_result_t _riff_read_chunk_content (FILE * f,
                 assert(0);
                 break;
         }
-	}
+    }
 
     switch(next_action) {
 
@@ -163,65 +163,65 @@ riff_result_t _riff_read_chunk_content (FILE * f,
             assert(0);
             break;
     }
-	
-	return RIFF_SUCCESS;
+    
+    return RIFF_SUCCESS;
 }
 
 riff_result_t riff_readfile (FILE * f, 
-						     riff_chunkcb chunk_cb,
-						     riff_errorcb err_cb,
+                             riff_chunkcb chunk_cb,
+                             riff_errorcb err_cb,
                              void * cookie) {
-	uint64_t foffset;    /* offset in the stream */
-	riff_result_t res = RIFF_SUCCESS;
-	riff_chunk_t next_chunk;
-	fourcc_t fourcc;     /* FourCC code of the next chunk */
+    uint64_t foffset;    /* offset in the stream */
+    riff_result_t res = RIFF_SUCCESS;
+    riff_chunk_t next_chunk;
+    fourcc_t fourcc;     /* FourCC code of the next chunk */
     uint32_t size;
 
-	riff_chunkv_t path;       /* Path from root to the current chunk */
-	VEC_INIT(path);
-	
-	foffset = 0;
-	while(1 == fread(&fourcc, sizeof(fourcc_t), 1, f)) {
-		CLEAR_CHUNK(next_chunk);
-		next_chunk.fourcc = fourcc;
-		next_chunk.pos_head = foffset; /* before FourCC */
-		foffset += sizeof(fourcc_t);
+    riff_chunkv_t path;       /* Path from root to the current chunk */
+    VEC_INIT(path);
+    
+    foffset = 0;
+    while(1 == fread(&fourcc, sizeof(fourcc_t), 1, f)) {
+        CLEAR_CHUNK(next_chunk);
+        next_chunk.fourcc = fourcc;
+        next_chunk.pos_head = foffset; /* before FourCC */
+        foffset += sizeof(fourcc_t);
 
-		if(next_chunk.fourcc != FCC_RIFF) {
-			res = RIFF_WRONGFCC;
-			break;
-		}
+        if(next_chunk.fourcc != FCC_RIFF) {
+            res = RIFF_WRONGFCC;
+            break;
+        }
 
-		if(1 != fread(&size, sizeof(uint32_t), 1, f)) {
-			res = ferror(f) ? RIFF_READFAILED : RIFF_CHUNKINCOMPLETE;
-			break;
-		}
-		foffset += sizeof(uint32_t);
+        if(1 != fread(&size, sizeof(uint32_t), 1, f)) {
+            res = ferror(f) ? RIFF_READFAILED : RIFF_CHUNKINCOMPLETE;
+            break;
+        }
+        foffset += sizeof(uint32_t);
 
-		next_chunk.pos_content = foffset; /* after FourCC and size */
-		next_chunk.pos_end     = next_chunk.pos_content + size;
+        next_chunk.pos_content = foffset; /* after FourCC and size */
+        next_chunk.pos_end     = next_chunk.pos_content + size;
 
-		/* push incomplete chunk so that _riff_read_chunk_content could finish it */
-		VEC_PUSH(path, next_chunk);
-		if(RIFF_SUCCESS != (res = _riff_read_chunk_content(f, &path, &foffset, chunk_cb, cookie))) {
-			break;
-		}
-		(void)VEC_POP(path);
+        /* push incomplete chunk so that _riff_read_chunk_content could finish it */
+        VEC_PUSH(path, next_chunk);
+        if(RIFF_SUCCESS != (res = _riff_read_chunk_content(f, &path, &foffset, chunk_cb, cookie))) {
+            break;
+        }
+        (void)VEC_POP(path);
 
-		ALIGN_EVEN(f, foffset);
-	}
-	
-	if(res == RIFF_SUCCESS) {
-		/* if there was not any error in the body of the loop */
-		if(ferror(f)) {
-			/* if fread returned 0 because of file error */
-			res = RIFF_READFAILED;
-		}
-	}
+        ALIGN_EVEN(f, foffset);
+    }
+    
+    if(res == RIFF_SUCCESS) {
+        /* if there was not any error in the body of the loop */
+        if(ferror(f)) {
+            /* if fread returned 0 because of file error */
+            res = RIFF_READFAILED;
+        }
+    }
 
-	if(res != RIFF_SUCCESS && res != RIFF_STOPPED && err_cb != NULL) {
-		err_cb(&path, f, foffset, res, cookie);
-	}
-	VEC_DESTROY(path);
-	return res;
+    if(res != RIFF_SUCCESS && res != RIFF_STOPPED && err_cb != NULL) {
+        err_cb(&path, f, foffset, res, cookie);
+    }
+    VEC_DESTROY(path);
+    return res;
 }
