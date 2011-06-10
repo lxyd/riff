@@ -53,6 +53,19 @@ riff_cbresult_t chunk_cb (const riff_chunkv_t * chunk_path_ptr, FILE * f, uint64
     return RIFF_CONTINUE; /* go print subchunks */
 }
 
+void err_cb (const riff_chunkv_t * chunk_path_ptr, FILE * f, uint64_t position, riff_result_t err, void * cookie) {
+    riff_chunk_t cur;
+    char buf[5];
+    int i;
+    for(i=0;i<VEC_SIZE(*chunk_path_ptr);i++) {
+        cur = VEC_GET(*chunk_path_ptr, i);
+        fourcc_to_string(cur.fourcc, buf);
+        printf("%s:", buf);
+    }
+    cur = VEC_TOP(*chunk_path_ptr);
+    printf(" %" PRIu64 " - %" PRIu64 "\n", cur.pos_head, cur.pos_end);
+}
+
 int main(int argc, char * argv[]){
     riff_result_t res;
     int argi = 1;
@@ -74,20 +87,20 @@ int main(int argc, char * argv[]){
             return 0;
         } else if(0 == strcmp(argv[argi], "-s") || 0 == strcmp(argv[argi], "--skip")) {
             argi++;
-            VEC_PUSH(skipv, (*(fourcc_t*)argv[argi]));
+            VEC_PUSH(skipv, FOURCC(argv[argi]));
             argi++;
         } else if(0 == strcmp(argv[argi], "-r") || 0 == strcmp(argv[argi], "--read")) {
             argi++;
-            VEC_PUSH(readv, (*(fourcc_t*)argv[argi]));
+            VEC_PUSH(readv, FOURCC(argv[argi]));
             argi++;
         } else if(0 == strcmp(argv[argi], "-p") || 0 == strcmp(argv[argi], "--stop")) {
             argi++;
-            VEC_PUSH(stopv, (*(fourcc_t*)argv[argi]));
+            VEC_PUSH(stopv, FOURCC(argv[argi]));
             argi++;
         }
     }
 
-    res = riff_readfile(stdin, chunk_cb, NULL, NULL);
+    res = riff_readfile(stdin, chunk_cb, err_cb, NULL);
     printf("%d\n", res);
     return 0;
 }

@@ -9,14 +9,20 @@
    ascii codes of alphanumeric characters */
 typedef uint32_t fourcc_t;
 
+#define FOURCC(str) (*((fourcc_t*)(str)))
+
 /* FourCC used as default */
 #define FCC_NULL ((fourcc_t)0u)
 
 /* Predefined FourCC codes for group chunks */
-#define FCC_RIFF (*((fourcc_t*)"RIFF"))
+/*#define FCC_RIFF (*((fourcc_t*)"RIFF"))
 #define FCC_LIST (*((fourcc_t*)"LIST"))
 #define FCC_FORM (*((fourcc_t*)"FORM"))
-#define FCC_CAT  (*((fourcc_t*)"CAT "))
+#define FCC_CAT  (*((fourcc_t*)"CAT "))*/
+#define FCC_RIFF FOURCC("RIFF")
+#define FCC_LIST FOURCC("LIST")
+#define FCC_FORM FOURCC("FORM")
+#define FCC_CAT  FOURCC("CAT ")
 
 #define MAX_CHUNK_LENGTH UINT32_MAX
 

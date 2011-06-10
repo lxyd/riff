@@ -3,7 +3,7 @@ INCDIR = include
 OBJDIR = obj
 BINDIR = bin
 
-CFLAGS += -I$(INCDIR) -std=c99 -pedantic -Wall
+CFLAGS += -std=c99 -pedantic -Wall
 
 SRC = $(SRCDIR)/riff.c \
 	  $(SRCDIR)/demo.c \
@@ -26,7 +26,7 @@ $(BINDIR)/wav2pcm: $(OBJDIR)/riff.o $(OBJDIR)/wav2pcm.o
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c $(INC)
 	mkdir -p $(dir $@)
-	$(CC) -c $< -o $@ $(CFLAGS)
+	$(CC) -c $< -o $@ -I$(INCDIR) $(CFLAGS)
 
 clean:
 	$(RM) -r $(OBJDIR)
